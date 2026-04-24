@@ -1,0 +1,13 @@
+{
+  "name": "golden-ticket-backend",
+  "version": "1.0.0",
+  "main": "src/functions/*.js",
+  "scripts": {
+    "start": "func start"
+  },
+  "dependencies": {
+    "@azure/communication-email": "^1.0.0",
+    "@azure/data-tables": "^13.2.2",
+    "@azure/functions": "^4.0.0"
+  }
+}
