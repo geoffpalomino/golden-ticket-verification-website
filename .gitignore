@@ -22,3 +22,6 @@ backend/local.settings.json
 
 # Node dependencies
 backend/node_modules/
+
+# Extra stuff
+extras
