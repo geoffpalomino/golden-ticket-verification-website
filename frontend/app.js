@@ -46,7 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             // Replace with your actual Azure Function URL
             // const response = await fetch(`/api/VerifyTicket?code=${code}`); TODO: CHANGE BEFORE DEPLOYMENT
-            const response = await fetch(`http://localhost:7071/api/VerifyTicket?code=${code}`);
+            const response = await fetch(`http://localhost:9091/api/VerifyTicket?code=${code}`);
 
             if (!response.ok) throw new Error('Network response was not ok');
             
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // const response = await fetch('/api/SaveStudentInfo', { TODO: CHANGE BEFORE DEPLOYMENT
-            const response = await fetch('http://localhost:7071/api/SaveStudentInfo', {
+            const response = await fetch('http://localhost:9091/api/SaveStudentInfo', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
