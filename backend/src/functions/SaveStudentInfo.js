@@ -31,7 +31,7 @@ app.http('SaveStudentInfo', {
                 LocalTimestamp: payload.LocalTimestamp
             };
 
-            await tableClient.upsertEntity(ticketEntity, "Replace");
+            await tableClient.upsertEntity(ticketEntity, "Merge");
 
             return {
                 status: 200,

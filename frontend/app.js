@@ -9,13 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const successMsg = document.getElementById('success-msg');
     const savedDataView = document.getElementById('saved-data-view');
 
-    // Initialization: Auto-populate from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const ticketFromUrl = urlParams.get('ticket');
-    if (ticketFromUrl) {
-        ticketInput.value = formatTicketCode(ticketFromUrl);
-    }
-
     // Input Formatting: Add hyphens dynamically
     ticketInput.addEventListener('input', (e) => {
         e.target.value = formatTicketCode(e.target.value);
@@ -58,6 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // 3. Handle a Valid Ticket (200 OK)
             if (response.ok && data.status === 'valid') {
+                // NEW: Show the Back button
+                document.getElementById('home-back-container').classList.remove('hidden');
+
                 studentFormSection.classList.remove('hidden');
                 verifyBtn.disabled = true;
                 ticketInput.disabled = true;
@@ -145,4 +141,37 @@ document.addEventListener('DOMContentLoaded', () => {
             submitBtn.disabled = false;
         }
     });
+
+    // NEW: Back Button Logic to return to the homepage
+    document.getElementById('back-to-verify-btn').addEventListener('click', () => {
+        // 1. Hide the Back button and the Student Form section
+        document.getElementById('home-back-container').classList.add('hidden');
+        studentFormSection.classList.add('hidden');
+
+        // 2. Re-enable the initial verify inputs and clear them
+        verifyBtn.disabled = false;
+        ticketInput.disabled = false;
+        ticketInput.value = ''; // Clear the ticket code
+        verifyMsg.textContent = ''; // Clear any error messages
+
+        // 3. Reset the student information form and hide old success messages
+        studentForm.reset();
+        successMsg.classList.add('hidden');
+        savedDataView.classList.add('hidden');
+        
+        // 4. Re-enable form inputs in case they were disabled by a previous submission
+        const inputs = studentForm.querySelectorAll('input');
+        inputs.forEach(input => input.disabled = false);
+        submitBtn.disabled = false;
+    });
+
+    // Initialization: Auto-populate from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const ticketFromUrl = urlParams.get('ticket');
+    if (ticketFromUrl) {
+        ticketInput.value = formatTicketCode(ticketFromUrl);
+
+        // NEW: Automatically trigger the verification process
+        verifyBtn.click();
+    }
 });
