@@ -19,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             <h3 class="mb-4 header-gold"><i class="bi bi-shield-lock"></i> Admin Portal</h3>
             
-            <div id="auth-section">
+            <div id="auth-section" class="position-relative">
                 <div class="input-group mb-3">
                     <input type="password" id="admin-password" class="form-control aurum-input" placeholder="Enter Password">
                     <button class="btn btn-action" type="button" id="toggle-password-btn" style="border-radius: 0 0.375rem 0.375rem 0;">
@@ -28,19 +28,32 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <button id="auth-btn" class="btn btn-action w-100">Login</button>
                 <div id="auth-error" class="text-danger mt-2 fw-bold"></div>
+                
+                <div id="auth-loading" class="loading-overlay hidden">
+                    <div class="spinner-border text-warning" role="status"></div>
+                    <span class="ms-2 text-light">Authenticating...</span>
+                </div>
             </div>
 
             <div id="dashboard-section" class="hidden text-start mt-4 position-relative">
                 <hr class="gold-divider">
                 <h5 class="text-center mb-3 header-gold">Notification Settings</h5>
                 
-                <div class="aurum-glass-panel p-3 rounded mb-3 text-center">
+                <div class="aurum-glass-panel p-3 rounded mb-3 text-center position-relative">
                     <p class="mb-0 text-light">Current Email: <br><strong id="current-email" class="text-warning fs-5">Loading...</strong></p>
+                    
+                    <div id="email-fetch-loading" class="loading-overlay hidden" style="border-radius: 0.375rem;">
+                        <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
+                    </div>
                 </div>
 
-                <div class="input-group mb-4">
+                <div class="input-group mb-4 position-relative">
                     <input type="email" id="new-email" class="form-control aurum-input" placeholder="New Admin Email">
                     <button class="btn btn-action" id="update-email-btn" style="border-radius: 0 0.375rem 0.375rem 0;">Update</button>
+                    
+                    <div id="email-update-loading" class="loading-overlay hidden" style="border-radius: 0.375rem;">
+                        <div class="spinner-border spinner-border-sm text-warning" role="status"></div>
+                    </div>
                 </div>
                 
                 <hr class="gold-divider">
@@ -77,6 +90,12 @@ document.addEventListener('DOMContentLoaded', () => {
         // Bind Admin Logic
         document.getElementById('auth-btn').addEventListener('click', async () => {
             const password = document.getElementById('admin-password').value;
+            const authLoading = document.getElementById('auth-loading');
+            
+            // Show loading
+            authLoading.classList.remove('hidden');
+            document.getElementById('auth-error').textContent = '';
+
             try {
                 const res = await fetch('https://golden-ticket-api.azurewebsites.net/api/system-ops', {
                     method: 'POST',
@@ -88,6 +107,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('auth-section').classList.add('hidden');
                     document.getElementById('dashboard-section').classList.remove('hidden');
                     
+                    // Show email fetch loading
+                    const emailFetchLoading = document.getElementById('email-fetch-loading');
+                    emailFetchLoading.classList.remove('hidden');
+
                     // Fetch semi-obscured email
                     const emailRes = await fetch('https://golden-ticket-api.azurewebsites.net/api/system-ops', {
                         method: 'POST',
@@ -96,11 +119,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                     const emailData = await emailRes.json();
                     document.getElementById('current-email').textContent = emailData.email;
+                    
+                    emailFetchLoading.classList.add('hidden');
                 } else {
                     document.getElementById('auth-error').textContent = 'Unauthorized';
                 }
             } catch (e) {
                 document.getElementById('auth-error').textContent = 'Connection Error';
+            } finally {
+                // Hide loading
+                authLoading.classList.add('hidden');
             }
         });
 
@@ -110,9 +138,11 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!newEmail) return;
 
             const updateBtn = document.getElementById('update-email-btn');
-            const originalText = updateBtn.textContent;
-            updateBtn.textContent = 'Saving...';
+            const emailUpdateLoading = document.getElementById('email-update-loading');
+            const emailFetchLoading = document.getElementById('email-fetch-loading');
+            
             updateBtn.disabled = true;
+            emailUpdateLoading.classList.remove('hidden');
 
             try {
                 const res = await fetch('https://golden-ticket-api.azurewebsites.net/api/system-ops', {
@@ -122,6 +152,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
                 
                 if (res.ok) {
+                    emailFetchLoading.classList.remove('hidden');
                     // Refresh email display
                     const emailRes = await fetch('https://golden-ticket-api.azurewebsites.net/api/system-ops', {
                         method: 'POST',
@@ -131,11 +162,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     const emailData = await emailRes.json();
                     document.getElementById('current-email').textContent = emailData.email;
                     document.getElementById('new-email').value = '';
+                    emailFetchLoading.classList.add('hidden');
                 }
             } catch (e) {
                 console.error('Failed to update email');
             } finally {
-                updateBtn.textContent = originalText;
+                emailUpdateLoading.classList.add('hidden');
                 updateBtn.disabled = false;
             }
         });

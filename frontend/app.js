@@ -36,56 +36,38 @@ document.addEventListener('DOMContentLoaded', () => {
         verifyMsg.textContent = '';
         studentFormSection.classList.add('hidden');
 
+        // NEW: Show loading indicator and disable inputs
+        const verifyLoading = document.getElementById('verify-loading-indicator');
+        verifyLoading.classList.remove('hidden');
+        verifyBtn.disabled = true;
+        ticketInput.disabled = true;
+
         try {
             // Make the fetch request
             const response = await fetch(`https://golden-ticket-api.azurewebsites.net/api/VerifyTicket?code=${code}`);
 
-            // 1. Handle critical server crashes (500) where JSON might not be returned
-            if (response.status === 500) {
-                verifyMsg.textContent = "System error connecting to the vault. Please try again later.";
-                return;
-            }
-
-            // 2. Parse the JSON body (Backend returns JSON for 200, 400, and 404)
-            const data = await response.json();
+            // ... (keep all your existing response logic here) ...
             
-            // 3. Handle a Valid Ticket (200 OK)
             if (response.ok && data.status === 'valid') {
-                // NEW: Show the Back button
-                document.getElementById('home-back-container').classList.remove('hidden');
-
-                studentFormSection.classList.remove('hidden');
-                verifyBtn.disabled = true;
-                ticketInput.disabled = true;
-
-                // Display saved data if it exists
-                if (data.studentInfo && data.studentInfo.FirstName) {
-                    savedDataView.innerHTML = `
-                        <div style="font-family: var(--font-body); text-transform: none; letter-spacing: normal;">
-                            <div class="text-warning mb-1" style="font-size: 0.85rem;">
-                                <i class="bi bi-clock-history"></i> ${data.studentInfo.LocalTimestamp}
-                            </div>
-                            <strong class="fs-5 text-white">${data.studentInfo.FirstName} ${data.studentInfo.LastName}</strong><br>
-                            <span class="text-light">Grade: ${data.studentInfo.Grade} &nbsp;|&nbsp; School: ${data.studentInfo.School}</span>
-                        </div>
-                    `;
-                    savedDataView.classList.remove('hidden');
-                }
-            } 
-            // 4. Handle known invalid inputs (404 Not Found or 400 Bad Request)
-            else if (data.status === 'invalid') {
-                // This pulls the "Ticket not found." or "Invalid code format." message directly from VerifyTicket.js
+                // ... existing success logic ...
+            } else if (data.status === 'invalid') {
                 verifyMsg.textContent = data.message; 
-            } 
-            // 5. Catch-all for other unexpected structured responses
-            else {
+                // Re-enable on invalid
+                verifyBtn.disabled = false;
+                ticketInput.disabled = false;
+            } else {
                 verifyMsg.textContent = "An unexpected error occurred.";
+                verifyBtn.disabled = false;
+                ticketInput.disabled = false;
             }
 
         } catch (error) {
-            // 6. This catch block now only runs if the fetch completely fails 
-            // (e.g., Azure Functions is offline, wrong port, or a CORS block)
             verifyMsg.textContent = "Hmm, the connection is a bit slow or the server is offline... Please try again.";
+            verifyBtn.disabled = false;
+            ticketInput.disabled = false;
+        } finally {
+            // NEW: Always hide the loading overlay when the request completes
+            verifyLoading.classList.add('hidden');
         }
     });
 

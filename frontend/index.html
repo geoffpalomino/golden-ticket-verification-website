@@ -26,10 +26,15 @@
 
             <h2 class="mb-4 text-center header-gold">Verify Golden Ticket</h2>
             
-            <div id="verify-section">
+            <div id="verify-section" class="position-relative">
                 <input type="text" id="ticket-input" class="form-control text-center fs-4 mb-3 aurum-input" placeholder="9-letter/number code" maxlength="11">
                 <button id="verify-btn" class="btn btn-action w-100">Verify Ticket</button>
                 <div id="verify-msg" class="mt-3 text-danger fw-bold text-center"></div>
+    
+                <div id="verify-loading-indicator" class="loading-overlay hidden">
+                    <div class="spinner-border text-warning" role="status"></div>
+                    <span class="ms-2 text-light">Verifying...</span>
+                </div>
             </div>
 
             <div id="student-form-section" class="hidden text-start mt-4 position-relative">
