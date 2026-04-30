@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // Make the fetch request
-            const response = await fetch(`http://goldent-ticket.azurewebsites.net/api/VerifyTicket?code=${code}`);
+            const response = await fetch(`https://golden-ticket-api.azurewebsites.net/api/VerifyTicket?code=${code}`);
 
             // 1. Handle critical server crashes (500) where JSON might not be returned
             if (response.status === 500) {
@@ -110,7 +110,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             // const response = await fetch('/api/SaveStudentInfo', { TODO: CHANGE BEFORE DEPLOYMENT
-            const response = await fetch('http://goldent-ticket.azurewebsites.net/api/SaveStudentInfo', {
+            const response = await fetch('https://golden-ticket-api.azurewebsites.net/api/SaveStudentInfo', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)

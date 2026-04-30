@@ -78,7 +78,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('auth-btn').addEventListener('click', async () => {
             const password = document.getElementById('admin-password').value;
             try {
-                const res = await fetch('http://golden-ticket.azurewebsites.net/api/system-ops', {
+                const res = await fetch('https://golden-ticket-api.azurewebsites/api/system-ops', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'authenticate', password: password })
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     document.getElementById('dashboard-section').classList.remove('hidden');
                     
                     // Fetch semi-obscured email
-                    const emailRes = await fetch('http://golden-ticket.azurewebsites.net/api/system-ops', {
+                    const emailRes = await fetch('https://golden-ticket-api.azurewebsites/api/system-ops', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ action: 'getEmail' })
@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
             updateBtn.disabled = true;
 
             try {
-                const res = await fetch('http://golden-ticket.azurewebsites.net/api/system-ops', {
+                const res = await fetch('https://golden-ticket-api.azurewebsites/api/system-ops', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ action: 'setEmail', newEmail: newEmail })
@@ -123,7 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (res.ok) {
                     // Refresh email display
-                    const emailRes = await fetch('http://golden-ticket.azurewebsites.net/api/system-ops', {
+                    const emailRes = await fetch('https://golden-ticket-api.azurewebsites/api/system-ops', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ action: 'getEmail' })
@@ -141,7 +141,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         document.getElementById('download-csv-btn').addEventListener('click', () => {
-            window.location.href = 'http://golden-ticket.azurewebsites.net/api/system-ops?action=downloadCSV';
+            window.location.href = 'https://golden-ticket-api.azurewebsites/api/system-ops?action=downloadCSV';
         });
     });
 });
