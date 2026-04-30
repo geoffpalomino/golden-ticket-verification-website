@@ -8,11 +8,15 @@ document.addEventListener('DOMContentLoaded', () => {
         verificationCard.classList.add('hidden'); // Hide landing page
         
         const adminUI = document.createElement('div');
-        // MATCH HOMEPAGE: Applied .golden-ticket and specific padding/centering
         adminUI.className = 'card p-4 golden-ticket text-center';
         
-        // MATCH HOMEPAGE: Applied .header-gold, .aurum-input, .btn-action, .gold-divider, and .aurum-glass-panel
         adminUI.innerHTML = `
+            <div class="text-start mb-4">
+                <button id="back-to-home-btn" class="btn btn-action btn-sm py-1 px-3" style="font-size: 0.85rem;">
+                    <i class="bi bi-arrow-left"></i> Back
+                </button>
+            </div>
+
             <h3 class="mb-4 header-gold"><i class="bi bi-shield-lock"></i> Admin Portal</h3>
             
             <div id="auth-section">
@@ -47,6 +51,12 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         `;
         container.appendChild(adminUI);
+
+        // NEW: Bind Back Button Logic
+        document.getElementById('back-to-home-btn').addEventListener('click', () => {
+            adminUI.remove(); // Remove the admin panel from the DOM
+            verificationCard.classList.remove('hidden'); // Unhide the original ticket verification screen
+        });
 
         // Bind Password Visibility Toggle
         document.getElementById('toggle-password-btn').addEventListener('click', () => {

@@ -65,9 +65,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Display saved data if it exists
                 if (data.studentInfo && data.studentInfo.FirstName) {
                     savedDataView.innerHTML = `
-                        <strong>${data.studentInfo.LocalTimestamp}</strong><br>
-                        ${data.studentInfo.FirstName} ${data.studentInfo.LastName}<br>
-                        Grade: ${data.studentInfo.Grade} | School: ${data.studentInfo.School}
+                        <div style="font-family: var(--font-body); text-transform: none; letter-spacing: normal;">
+                            <div class="text-warning mb-1" style="font-size: 0.85rem;">
+                                <i class="bi bi-clock-history"></i> ${data.studentInfo.LocalTimestamp}
+                            </div>
+                            <strong class="fs-5 text-white">${data.studentInfo.FirstName} ${data.studentInfo.LastName}</strong><br>
+                            <span class="text-light">Grade: ${data.studentInfo.Grade} &nbsp;|&nbsp; School: ${data.studentInfo.School}</span>
+                        </div>
                     `;
                     savedDataView.classList.remove('hidden');
                 }
@@ -122,9 +126,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Display the newly saved info
                 savedDataView.innerHTML = `
-                    <strong>${payload.LocalTimestamp}</strong><br>
-                    ${payload.FirstName} ${payload.LastName}<br>
-                    Grade: ${payload.Grade} | School: ${payload.School}
+                    <div style="font-family: var(--font-body); text-transform: none; letter-spacing: normal;">
+                        <div class="text-warning mb-1" style="font-size: 0.85rem;">
+                            <i class="bi bi-clock-history"></i> ${payload.LocalTimestamp}
+                        </div>
+                        <strong class="fs-5 text-white">${payload.FirstName} ${payload.LastName}</strong><br>
+                        <span class="text-light">Grade: ${payload.Grade} &nbsp;|&nbsp; School: ${payload.School}</span>
+                    </div>
                 `;
                 savedDataView.classList.remove('hidden');
             } else {
