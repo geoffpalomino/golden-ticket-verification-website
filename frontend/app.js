@@ -24,10 +24,36 @@ document.addEventListener('DOMContentLoaded', () => {
         return formatted.substring(0, 11);
     }
 
+    // Original timestamp format for the database
     function getLocalTimestamp() {
         const now = new Date();
         const pad = (n) => n.toString().padStart(2, '0');
         return `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}:${pad(now.getHours())}-${pad(now.getMinutes())}-${pad(now.getSeconds())}`;
+    }
+
+    // NEW: Function to format the raw database string for UI display
+    function formatDisplayTimestamp(rawTimestamp) {
+        if (!rawTimestamp) return '';
+        
+        // Expected format: YYYY-MM-DD:HH-MM-SS
+        const parts = rawTimestamp.split(':');
+        if (parts.length !== 2) return rawTimestamp; // Fallback if format is unexpected
+        
+        const datePart = parts[0];
+        const timeParts = parts[1].split('-');
+        
+        if (timeParts.length < 2) return rawTimestamp;
+        
+        let hours = parseInt(timeParts[0], 10);
+        const minutes = timeParts[1];
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        
+        hours = hours % 12;
+        hours = hours ? hours : 12; // convert '0' to '12'
+        
+        const formattedHours = hours.toString().padStart(2, '0');
+        
+        return `${datePart} ${formattedHours}:${minutes} ${ampm}`;
     }
 
     // Verify Logic
@@ -36,49 +62,79 @@ document.addEventListener('DOMContentLoaded', () => {
         verifyMsg.textContent = '';
         studentFormSection.classList.add('hidden');
 
-        // NEW: Show loading indicator and disable inputs
+        // Show loading indicator and disable inputs
         const verifyLoading = document.getElementById('verify-loading-indicator');
         verifyLoading.classList.remove('hidden');
         verifyBtn.disabled = true;
         ticketInput.disabled = true;
 
         try {
-        // Make the fetch request
-        const response = await fetch(`https://golden-ticket-api.azurewebsites.net/api/VerifyTicket?code=${code}`);
-
-        // ADD THIS LINE: Parse the response into the 'data' variable
-        const data = await response.json();
-        
-        if (response.ok && data.status === 'valid') {
-            // SUCCESS LOGIC: Show the student form and hide the verify button
-            studentFormSection.classList.remove('hidden');
-            document.getElementById('verify-section').classList.add('hidden');
+            // Make the fetch request
+            const response = await fetch(`https://golden-ticket-api.azurewebsites.net/api/VerifyTicket?code=${code}`);
+            const data = await response.json();
             
-            // Optional: If the student info already exists, populate it or show a message
-            if(data.studentInfo && data.studentInfo.FirstName) {
-                console.log("Student already registered:", data.studentInfo);
-            }
-            document.getElementById('home-back-container').classList.remove('hidden');
+            if (response.ok && data.status === 'valid') {
+                // 1. Show the student form section and the back button
+                studentFormSection.classList.remove('hidden');
+                document.getElementById('home-back-container').classList.remove('hidden');
+                document.getElementById('verify-section').classList.add('hidden');
+                
+                // 2. Check if student info already exists in the database
+                if(data.studentInfo && data.studentInfo.FirstName) {
+                    
+                    // DO NOT hide the input form, ensure it remains visible for updates
+                    studentForm.classList.remove('hidden');
+                    
+                    // Pre-fill the form with the existing data so the user can edit it
+                    document.getElementById('firstName').value = data.studentInfo.FirstName;
+                    document.getElementById('lastName').value = data.studentInfo.LastName;
+                    document.getElementById('grade').value = data.studentInfo.Grade;
+                    document.getElementById('school').value = data.studentInfo.School;
+                    submitBtn.textContent = "Update Info"; // Change button text to reflect update action
+                    
+                    // NEW: Use the formatter for the displayed time
+                    const displayTime = formatDisplayTimestamp(data.studentInfo.LocalTimestamp);
 
-        } else if (data.status === 'invalid') {
-            verifyMsg.textContent = data.message; 
-            verifyBtn.disabled = false;
-            ticketInput.disabled = false;
-        } else {
-            verifyMsg.textContent = "An unexpected error occurred.";
-            verifyBtn.disabled = false;
-            ticketInput.disabled = false;
-        }
+                    // Populate the saved data view with the retrieved information
+                    savedDataView.innerHTML = `
+                        <div style="font-family: var(--font-body); text-transform: none; letter-spacing: normal;">
+                            <div class="text-warning mb-1" style="font-size: 0.85rem;">
+                                <i class="bi bi-clock-history"></i> ${displayTime}
+                            </div>
+                            <strong class="fs-5 text-white">${data.studentInfo.FirstName} ${data.studentInfo.LastName}</strong><br>
+                            <span class="text-light">Grade: ${data.studentInfo.Grade} &nbsp;|&nbsp; School: ${data.studentInfo.School}</span>
+                        </div>
+                    `;
+                    // Unhide the populated panel
+                    savedDataView.classList.remove('hidden');
+                    
+                } else {
+                    // If it's a new ticket, ensure the input form is visible and empty
+                    studentForm.classList.remove('hidden');
+                    savedDataView.classList.add('hidden');
+                    studentForm.reset();
+                    submitBtn.textContent = "Submit";
+                }
+
+            } else if (data.status === 'invalid') {
+                verifyMsg.textContent = data.message; 
+                verifyBtn.disabled = false;
+                ticketInput.disabled = false;
+            } else {
+                verifyMsg.textContent = "An unexpected error occurred.";
+                verifyBtn.disabled = false;
+                ticketInput.disabled = false;
+            }
 
         } catch (error) {
-            console.error("The actual error was:", error); // <-- Add this to see future bugs in the console!
+            console.error("The actual error was:", error);
             verifyMsg.textContent = "Hmm, the connection is a bit slow or the server is offline... Please try again.";
             verifyBtn.disabled = false;
             ticketInput.disabled = false;
         } finally {
-                // NEW: Always hide the loading overlay when the request completes
-                verifyLoading.classList.add('hidden');
-            }
+            // Always hide the loading overlay when the request completes
+            verifyLoading.classList.add('hidden');
+        }
     });
 
     // Submit Logic
@@ -97,11 +153,10 @@ document.addEventListener('DOMContentLoaded', () => {
             LastName: document.getElementById('lastName').value,
             Grade: document.getElementById('grade').value,
             School: document.getElementById('school').value,
-            LocalTimestamp: getLocalTimestamp()
+            LocalTimestamp: getLocalTimestamp() // Keeps original format for the backend
         };
 
         try {
-            // const response = await fetch('/api/SaveStudentInfo', { TODO: CHANGE BEFORE DEPLOYMENT
             const response = await fetch('https://golden-ticket-api.azurewebsites.net/api/SaveStudentInfo', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -112,17 +167,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 loadingIndicator.classList.add('hidden');
                 successMsg.classList.remove('hidden');
                 
+                // NEW: Use the formatter for the displayed time after saving
+                const displayTime = formatDisplayTimestamp(payload.LocalTimestamp);
+
                 // Display the newly saved info
                 savedDataView.innerHTML = `
                     <div style="font-family: var(--font-body); text-transform: none; letter-spacing: normal;">
                         <div class="text-warning mb-1" style="font-size: 0.85rem;">
-                            <i class="bi bi-clock-history"></i> ${payload.LocalTimestamp}
+                            <i class="bi bi-clock-history"></i> ${displayTime}
                         </div>
                         <strong class="fs-5 text-white">${payload.FirstName} ${payload.LastName}</strong><br>
                         <span class="text-light">Grade: ${payload.Grade} &nbsp;|&nbsp; School: ${payload.School}</span>
                     </div>
                 `;
                 savedDataView.classList.remove('hidden');
+                
+                // Re-enable the inputs and button so the user can continue editing if needed
+                inputs.forEach(input => input.disabled = false);
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Update Info";
+                
             } else {
                 throw new Error('Save failed');
             }
@@ -134,14 +198,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // NEW: Back Button Logic to return to the homepage
+    // Back Button Logic to return to the homepage
     document.getElementById('back-to-verify-btn').addEventListener('click', () => {
         // 1. Hide the Back button and the Student Form section
         document.getElementById('home-back-container').classList.add('hidden');
         studentFormSection.classList.add('hidden');
 
         // 2. Re-enable the initial verify inputs, clear them, AND REVEAL THE SECTION
-        document.getElementById('verify-section').classList.remove('hidden'); // <-- ADD THIS LINE
+        document.getElementById('verify-section').classList.remove('hidden'); 
         verifyBtn.disabled = false;
         ticketInput.disabled = false;
         ticketInput.value = ''; // Clear the ticket code
@@ -151,6 +215,8 @@ document.addEventListener('DOMContentLoaded', () => {
         studentForm.reset();
         successMsg.classList.add('hidden');
         savedDataView.classList.add('hidden');
+        studentForm.classList.remove('hidden'); // Ensure form is unhidden for the next ticket
+        submitBtn.textContent = "Submit"; // Reset the submit button text
         
         // 4. Re-enable form inputs in case they were disabled by a previous submission
         const inputs = studentForm.querySelectorAll('input');
@@ -164,7 +230,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ticketFromUrl) {
         ticketInput.value = formatTicketCode(ticketFromUrl);
 
-        // NEW: Automatically trigger the verification process
+        // Automatically trigger the verification process
         verifyBtn.click();
     }
 });
