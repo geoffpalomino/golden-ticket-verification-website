@@ -43,32 +43,42 @@ document.addEventListener('DOMContentLoaded', () => {
         ticketInput.disabled = true;
 
         try {
-            // Make the fetch request
-            const response = await fetch(`https://golden-ticket-api.azurewebsites.net/api/VerifyTicket?code=${code}`);
+        // Make the fetch request
+        const response = await fetch(`https://golden-ticket-api.azurewebsites.net/api/VerifyTicket?code=${code}`);
 
-            // ... (keep all your existing response logic here) ...
+        // ADD THIS LINE: Parse the response into the 'data' variable
+        const data = await response.json();
+        
+        if (response.ok && data.status === 'valid') {
+            // SUCCESS LOGIC: Show the student form and hide the verify button
+            studentFormSection.classList.remove('hidden');
+            document.getElementById('verify-section').classList.add('hidden');
             
-            if (response.ok && data.status === 'valid') {
-                // ... existing success logic ...
-            } else if (data.status === 'invalid') {
-                verifyMsg.textContent = data.message; 
-                // Re-enable on invalid
-                verifyBtn.disabled = false;
-                ticketInput.disabled = false;
-            } else {
-                verifyMsg.textContent = "An unexpected error occurred.";
-                verifyBtn.disabled = false;
-                ticketInput.disabled = false;
+            // Optional: If the student info already exists, populate it or show a message
+            if(data.studentInfo && data.studentInfo.FirstName) {
+                console.log("Student already registered:", data.studentInfo);
             }
+            document.getElementById('home-back-container').classList.remove('hidden');
+
+        } else if (data.status === 'invalid') {
+            verifyMsg.textContent = data.message; 
+            verifyBtn.disabled = false;
+            ticketInput.disabled = false;
+        } else {
+            verifyMsg.textContent = "An unexpected error occurred.";
+            verifyBtn.disabled = false;
+            ticketInput.disabled = false;
+        }
 
         } catch (error) {
+            console.error("The actual error was:", error); // <-- Add this to see future bugs in the console!
             verifyMsg.textContent = "Hmm, the connection is a bit slow or the server is offline... Please try again.";
             verifyBtn.disabled = false;
             ticketInput.disabled = false;
         } finally {
-            // NEW: Always hide the loading overlay when the request completes
-            verifyLoading.classList.add('hidden');
-        }
+                // NEW: Always hide the loading overlay when the request completes
+                verifyLoading.classList.add('hidden');
+            }
     });
 
     // Submit Logic
@@ -130,7 +140,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('home-back-container').classList.add('hidden');
         studentFormSection.classList.add('hidden');
 
-        // 2. Re-enable the initial verify inputs and clear them
+        // 2. Re-enable the initial verify inputs, clear them, AND REVEAL THE SECTION
+        document.getElementById('verify-section').classList.remove('hidden'); // <-- ADD THIS LINE
         verifyBtn.disabled = false;
         ticketInput.disabled = false;
         ticketInput.value = ''; // Clear the ticket code
