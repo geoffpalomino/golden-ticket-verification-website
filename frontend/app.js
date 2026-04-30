@@ -44,15 +44,20 @@ document.addEventListener('DOMContentLoaded', () => {
         studentFormSection.classList.add('hidden');
 
         try {
-            // Replace with your actual Azure Function URL
-            // const response = await fetch(`/api/VerifyTicket?code=${code}`); TODO: CHANGE BEFORE DEPLOYMENT
+            // Make the fetch request
             const response = await fetch(`http://localhost:9091/api/VerifyTicket?code=${code}`);
 
-            if (!response.ok) throw new Error('Network response was not ok');
-            
+            // 1. Handle critical server crashes (500) where JSON might not be returned
+            if (response.status === 500) {
+                verifyMsg.textContent = "System error connecting to the vault. Please try again later.";
+                return;
+            }
+
+            // 2. Parse the JSON body (Backend returns JSON for 200, 400, and 404)
             const data = await response.json();
             
-            if (data.status === 'valid') {
+            // 3. Handle a Valid Ticket (200 OK)
+            if (response.ok && data.status === 'valid') {
                 studentFormSection.classList.remove('hidden');
                 verifyBtn.disabled = true;
                 ticketInput.disabled = true;
@@ -66,11 +71,21 @@ document.addEventListener('DOMContentLoaded', () => {
                     `;
                     savedDataView.classList.remove('hidden');
                 }
-            } else {
-                verifyMsg.textContent = 'Invalid Code.';
+            } 
+            // 4. Handle known invalid inputs (404 Not Found or 400 Bad Request)
+            else if (data.status === 'invalid') {
+                // This pulls the "Ticket not found." or "Invalid code format." message directly from VerifyTicket.js
+                verifyMsg.textContent = data.message; 
+            } 
+            // 5. Catch-all for other unexpected structured responses
+            else {
+                verifyMsg.textContent = "An unexpected error occurred.";
             }
+
         } catch (error) {
-            verifyMsg.textContent = "Hmm, the connection is a bit slow... Please try again.";
+            // 6. This catch block now only runs if the fetch completely fails 
+            // (e.g., Azure Functions is offline, wrong port, or a CORS block)
+            verifyMsg.textContent = "Hmm, the connection is a bit slow or the server is offline... Please try again.";
         }
     });
 
