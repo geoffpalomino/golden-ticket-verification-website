@@ -1,0 +1,20 @@
+{
+    "liveServer.settings.ignoreFiles": [
+        ".vscode/**",
+        "**/*.scss",
+        "**/*.sass",
+        "**/*.ts",
+        "node_modules/**",
+        "venv/**",
+        ".venv/**",
+        "**/__blobstorage__/**",
+        "**/__queuestorage__/**",
+        "**/__azurite_db_*.json", 
+        "**/AzuriteConfig"
+    ],
+    "azureFunctions.deploySubpath": ".",
+    "azureFunctions.projectLanguage": "JavaScript",
+    "azureFunctions.projectRuntime": "~4",
+    "debug.internalConsoleOptions": "neverOpen"
+}
+

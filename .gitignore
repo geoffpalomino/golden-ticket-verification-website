@@ -5,7 +5,6 @@ local.settings.json
 node_modules/
 
 # VSCode config
-.vscode/
 
 # OS generated files
 .DS_Store
