@@ -36,7 +36,7 @@ app.timer('DailyReportTimer', {
             const emailClient = new EmailClient(emailConnectionString);
             
             const emailMessage = {
-                senderAddress: "DoNotReply@your-communication-domain.azurecomm.net",
+                senderAddress: "DoNotReply@137f906c-9586-4a3f-9d6a-36c01a48060b.azurecomm.net",
                 content: {
                     subject: `Golden Ticket Daily Digest - ${today}`,
                     plainText: "Attached is the complete Golden Ticket database history. Updates were made today."
